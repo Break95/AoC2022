@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <chrono>
 
 void part1(std::ifstream& input){
     std::string calories;
@@ -19,15 +20,15 @@ void part1(std::ifstream& input){
         }
     }
 
-    std::cout << maxCalories << std::endl;
-
+    std::cout << "Result part 1: " << maxCalories << std::endl;
 }
 
-void part2_a(std::ifstream& input){
+int part2_a(std::ifstream& input){
     std::string calories;
 
     int low, mid, high = 0;
     int currentCalories = 0;
+
     while(std::getline(input, calories)) {
         if (calories.size() != 0) {
             currentCalories += std::stoi(calories);
@@ -46,12 +47,12 @@ void part2_a(std::ifstream& input){
         }
     }
 
-    std::cout << low + mid + high << std::endl;
+    return low + mid + high;
 }
 
 bool compare(int a, int b){ return a > b; }
 
-void part2_b(std::ifstream& input){
+int part2_b(std::ifstream& input){
     std::string calories;
     std::vector<int> calorieList;
     int currentCalories = 0;
@@ -67,21 +68,46 @@ void part2_b(std::ifstream& input){
 
     std::sort(calorieList.begin(), calorieList.end(), compare);
 
-    std::cout << calorieList[0] + calorieList[1] + calorieList[2] << std::endl;
+    return calorieList[0] + calorieList[1] + calorieList[2];
 }
 
 int main(int argc, char *argv[]) {
     std::ifstream input(argv[1]);
+    int loops = 1000;
 
     part1(input);
 
-    input.clear();
-    input.seekg(0);
-    part2_a(input);
 
-    input.clear();
-    input.seekg(0, std::ios::beg);
-    part2_b(input);
+    int resA;
+    int resB;
+    auto timeA = std::chrono::duration<double, std::milli>::zero();
+    auto timeB = std::chrono::duration<double, std::milli>::zero();
+
+    for (int i = 0; i < loops; ++i){
+        auto t1 = std::chrono::high_resolution_clock::now();
+        input.clear();
+        input.seekg(0);
+        resA = part2_a(input);
+        auto t2 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> msDoubleA = t2 - t1;
+        timeA += msDoubleA;
+    }
+
+    for (int i = 0; i < loops; ++i) {
+        auto t1 = std::chrono::high_resolution_clock::now();
+        input.clear();
+        input.seekg(0, std::ios::beg);
+        resB = part2_b(input);
+        auto t2 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> msDoubleB = t2 - t1;
+        timeB += msDoubleB;
+    }
+
+
+    std::cout << "Result part 2: " << resA << " - " << resB << "\n\n";
+
+    std::cout << "Part 2. 3 value approach: " << timeA.count()/loops << " ms\n";
+    std::cout << "Part 2. List approach:    " << timeB.count()/loops << " ms\n";
 
     input.close();
 
